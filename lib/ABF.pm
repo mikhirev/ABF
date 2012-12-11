@@ -100,7 +100,7 @@ sub createbuildlist {
     }
 
     my $requestdata = { build_list => \%params };
-    my $response = $self->request('put', 'build_lists.json', encode_json($requestdata));
+    my $response = $self->request('post', 'build_lists.json', encode_json($requestdata));
     my $responsedata = decode_json($response->content());
     croak($responsedata->{build_list}{message}) unless $responsedata->{build_list}{id};
     return $self->buildlist(id  => $responsedata->{build_list}{id});
@@ -161,8 +161,20 @@ sub request ($$$@) {
                 $i += 2;
             }
             $response = $ua->put($url, @_, Content => $data);
+        } elsif (m/^post$/i) {
+            my $data = pop;
+            my $url = $self->apiurl() . $path . '?';
+            my $i = 0;
+            while ($i < @_) {
+                $url .= "$_[$i]=$_[$i+1]&";
+                $i += 2;
+            }
+            my $req = HTTP::Request->new(POST => $url);
+            $response = $ua->post($url, @_,
+                        'Content-Type'  => 'application/json',
+                        Content         => $data);
         } else {
-            croak("Only GET and PUT requests allowed");
+            croak("Only GET, POST and PUT requests allowed");
         }
     }
     croak ('Request failed: ' . $response->code() . ' ' . $response->message())
