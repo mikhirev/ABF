@@ -71,38 +71,23 @@ sub strstatus {
 
 sub cancel {
     my $self = shift;
-    my $response = $self->abf()->request('put',
+    my $response = $self->abf()->request('get',
         'build_lists/' . $self->id() . '/cancel.json');
-    my $responsedata = decode_json($response->content());
-    if ($responsedata->{is_canceled}) {
-        return $responsedata->{message};
-    } else {
-        croak $responsedata->{message};
-    }
+    return decode_json($response->content());
 }
 
 sub publish {
     my $self = shift;
-    my $response = $self->abf()->request('put',
+    my $response = $self->abf()->request('get',
         'build_lists/' . $self->id() . '/publish.json');
-    my $responsedata = decode_json($response->content());
-    if ($responsedata->{is_published}) {
-        return $responsedata->{message};
-    } else {
-        croak $responsedata->{message};
-    }
+    return decode_json($response->content());
 }
 
 sub reject {
     my $self = shift;
-    my $response = $self->abf()->request('put',
+    my $response = $self->abf()->request('get',
         'build_lists/' . $self->id() . '/reject_publish.json');
-    my $responsedata = decode_json($response->content());
-    if ($responsedata->{is_rejected}) {
-        return $responsedata->{message};
-    } else {
-        croak $responsedata->{message};
-    }
+    return decode_json($response->content());
 }
 
 sub AUTOLOAD {
