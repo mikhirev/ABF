@@ -21,8 +21,6 @@ our @EXPORT = qw();
 our $VERSION = '0.00_01';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
-our $ua = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 });
-
 our $ratelimit;
 our $ratelimit_remain;
 
@@ -122,8 +120,16 @@ sub apiurl {
     my $url = $self->baseurl() . "/api/v1/";
     my $login = $self->login();
     my $password = $self->password();
-    $url =~ s|^(\w+://)|$1$login:$password@|;
     return $url;
+}
+
+sub ua {
+    my $self = shift;
+    my $ua = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0 });
+    my ($protocol, $host, $port) = $self->baseurl() =~ m|^(\w+)://([\w.-]+)(?::(\d+))?|;
+    $port = $protocol eq 'https' ? 443 : 80 unless $port;
+    $ua->credentials("$host:$port", 'Application', $self->login(), $self->password());
+    return $ua;
 }
 
 sub ratelimit {
@@ -142,6 +148,7 @@ sub request ($$$@) {
     my $self = shift;
     my $type = shift;
     my $path = shift;
+    my $ua = $self->ua();
     my $response;
     for ($type) {
         if (m/^get$/i) {
@@ -151,7 +158,9 @@ sub request ($$$@) {
                 $url .= "$_[$i]=$_[$i+1]&";
                 $i += 2;
             }
-            $response = $ua->get($url);
+            my $req = HTTP::Request->new(GET => $url);
+            $req->authorization_basic($self->login(), $self->password());
+            $response = $ua->request($req);
         } elsif (m/^put$/i) {
             my $data = pop;
             my $url = $self->apiurl() . $path . '?';
@@ -160,7 +169,9 @@ sub request ($$$@) {
                 $url .= "$_[$i]=$_[$i+1]&";
                 $i += 2;
             }
-            $response = $ua->put($url, @_, Content => $data);
+            my $req = HTTP::Request->new(PUT, $url, @_, Content => $data);
+            $req->authorization_basic($self->login(), $self->password());
+            $response = $ua->request($req);
         } elsif (m/^post$/i) {
             my $data = pop;
             my $url = $self->apiurl() . $path . '?';
@@ -169,10 +180,11 @@ sub request ($$$@) {
                 $url .= "$_[$i]=$_[$i+1]&";
                 $i += 2;
             }
-            my $req = HTTP::Request->new(POST => $url);
-            $response = $ua->post($url, @_,
+            my $req = HTTP::Request->new(POST => $url, @_,
                         'Content-Type'  => 'application/json',
                         Content         => $data);
+            $req->authorization_basic($self->login(), $self->password());
+            $response = $ua->request($req);
         } else {
             croak("Only GET, POST and PUT requests allowed");
         }
