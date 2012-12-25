@@ -169,7 +169,7 @@ sub request ($$$@) {
                 $url .= "$_[$i]=$_[$i+1]&";
                 $i += 2;
             }
-            my $req = HTTP::Request->new(PUT, $url, @_, Content => $data);
+            my $req = HTTP::Request->new(PUT => $url, @_, Content => $data);
             $req->authorization_basic($self->login(), $self->password());
             $response = $ua->request($req);
         } elsif (m/^post$/i) {
