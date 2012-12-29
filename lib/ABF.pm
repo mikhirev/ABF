@@ -180,9 +180,9 @@ sub request ($$$@) {
                 $url .= "$_[$i]=$_[$i+1]&";
                 $i += 2;
             }
-            my $req = HTTP::Request->new(POST => $url, @_,
-                        'Content-Type'  => 'application/json',
-                        Content         => $data);
+            my $req = HTTP::Request->new(POST => $url);
+            $req->content($data);
+            $req->header('Content-Type'  => 'application/json');
             $req->authorization_basic($self->login(), $self->password());
             $response = $ua->request($req);
         } else {
