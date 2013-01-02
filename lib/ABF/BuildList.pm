@@ -149,7 +149,7 @@ Dmitry Mikhirev <mikhirev@mezon.ru>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012 by Dmitry Mikhirev
+Copyright (C) 2012, 2013 by Dmitry Mikhirev
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
