@@ -162,14 +162,16 @@ sub request ($$$@) {
             $req->authorization_basic($self->login(), $self->password());
             $response = $ua->request($req);
         } elsif (m/^put$/i) {
-            my $data = pop;
+            my $data = pop || '';
             my $url = $self->apiurl() . $path . '?';
             my $i = 0;
             while ($i < @_) {
                 $url .= "$_[$i]=$_[$i+1]&";
                 $i += 2;
             }
-            my $req = HTTP::Request->new(PUT => $url, @_, Content => $data);
+            my $req = HTTP::Request->new(PUT => $url);
+            $req->content($data);
+            $req->header('Content-Length' => length($data));
             $req->authorization_basic($self->login(), $self->password());
             $response = $ua->request($req);
         } elsif (m/^post$/i) {
@@ -181,16 +183,14 @@ sub request ($$$@) {
                 $i += 2;
             }
             my $req = HTTP::Request->new(POST => $url);
-            $req->content($data);
             $req->header('Content-Type'  => 'application/json');
+            $req->content($data);
             $req->authorization_basic($self->login(), $self->password());
             $response = $ua->request($req);
         } else {
             croak("Only GET, POST and PUT requests allowed");
         }
     }
-    croak ('Request failed: ' . $response->code() . ' ' . $response->message())
-        if  $response->is_error();
     $ratelimit = $response->header("X-RateLimit-Limit");
     $ratelimit_remain = $response->header("X-RateLimit-Remaining");
     return $response;

@@ -71,21 +71,21 @@ sub strstatus {
 
 sub cancel {
     my $self = shift;
-    my $response = $self->abf()->request('get',
+    my $response = $self->abf()->request('put',
         'build_lists/' . $self->id() . '/cancel.json');
     return decode_json($response->content());
 }
 
 sub publish {
     my $self = shift;
-    my $response = $self->abf()->request('get',
+    my $response = $self->abf()->request('put',
         'build_lists/' . $self->id() . '/publish.json');
     return decode_json($response->content());
 }
 
 sub reject {
     my $self = shift;
-    my $response = $self->abf()->request('get',
+    my $response = $self->abf()->request('put',
         'build_lists/' . $self->id() . '/reject_publish.json');
     return decode_json($response->content());
 }
